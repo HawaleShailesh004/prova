@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Prova — On-Chain Document Notarization</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+
+  <div class="grain"></div>
+  <!-- Hexagon watermark (on every page) -->
+  <div class="hex-watermark" aria-hidden="true">
+    <svg width="320" height="320" viewBox="0 0 320 320" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <polygon points="160,20 290,90 290,230 160,300 30,230 30,90" stroke="currentColor" stroke-width="1" fill="none"/>
+      <polygon points="160,55 260,111 260,221 160,277 60,221 60,111" stroke="currentColor" stroke-width="0.6" fill="none"/>
+      <polygon points="160,90 230,131 230,213 160,254 90,213 90,131" stroke="currentColor" stroke-width="0.4" fill="none"/>
+      <line x1="160" y1="20" x2="160" y2="300" stroke="currentColor" stroke-width="0.3"/>
+      <line x1="30" y1="90" x2="290" y2="230" stroke="currentColor" stroke-width="0.3"/>
+      <line x1="290" y1="90" x2="30" y2="230" stroke="currentColor" stroke-width="0.3"/>
+    </svg>
+  </div>
+
+  <div class="app">
+
+    <!-- Header -->
+    <header class="header">
+      <div class="logo">
+        <div class="logo-mark">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <rect x="2" y="1" width="9" height="12" rx="1" stroke="currentColor" stroke-width="1.2"/>
+            <path d="M4.5 4.5h4M4.5 6.5h4M4.5 8.5h2.5" stroke="currentColor" stroke-width="1" stroke-linecap="round"/>
+            <circle cx="12" cy="12" r="3.2" fill="var(--bg)" stroke="var(--gold)" stroke-width="1.1"/>
+            <path d="M10.9 12l.9.9 1.8-1.8" stroke="var(--gold)" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <span class="logo-name">Prova</span>
+      </div>
+
+      <nav class="nav">
+        <button class="nav-link active" onclick="switchTab('stamp', this)" data-tab="stamp">Stamp</button>
+        <button class="nav-link" onclick="switchTab('verify', this)" data-tab="verify">Verify</button>
+        <button class="nav-link" onclick="switchTab('history', this)" data-tab="history">Records</button>
+      </nav>
+
+      <div class="header-right">
+        <div class="network-pill">
+          <span class="pulse-dot"></span>
+          Amoy
+        </div>
+        <button class="wallet-btn" id="connectBtn" onclick="connectWallet()">
+          <span id="connectText">Connect Wallet</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- ── STAMP TAB ── -->
+    <div class="tab-content active" id="tab-stamp">
+
+      <div class="page-hero">
+        <p class="hero-eyebrow">On-Chain Notarization</p>
+        <h1 class="hero-title">Prove your document <em>existed.</em></h1>
+        <p class="hero-body">Hash any file locally. Record the fingerprint on Polygon permanently.<br/>No notary. No middleman. Just cryptographic proof.</p>
+      </div>
+
+      <div class="steps-track">
+        <div class="step-node active" id="sn1"><span>01</span></div>
+        <div class="step-line" id="sl1"></div>
+        <div class="step-node" id="sn2"><span>02</span></div>
+        <div class="step-line" id="sl2"></div>
+        <div class="step-node" id="sn3"><span>03</span></div>
+      </div>
+
+      <!-- Upload -->
+      <div class="card" id="uploadCard">
+        <p class="card-eyebrow">Upload Document</p>
+        <div class="drop-zone" id="dropZone"
+          ondrop="handleDrop(event)"
+          ondragover="handleDragOver(event)"
+          ondragleave="handleDragLeave(event)"
+          onclick="document.getElementById('fileInput').click()">
+
+          <div id="dropIdle">
+            <div class="drop-icon">
+              <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
+                <rect x="7" y="4" width="17" height="22" rx="1.5" stroke="currentColor" stroke-width="1.2" fill="none"/>
+                <path d="M18 4v7h6" stroke="currentColor" stroke-width="1.2"/>
+                <path d="M27 27v6M24.5 29.5l2.5-2.5 2.5 2.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M11 16h9M11 19.5h6" stroke="currentColor" stroke-width="1" stroke-linecap="round" opacity="0.35"/>
+              </svg>
+            </div>
+            <p class="drop-primary">Drop any file here</p>
+            <p class="drop-secondary">PDF · DOCX · JPG · any format &nbsp;·&nbsp; Hashed locally, never uploaded</p>
+          </div>
+
+          <div id="dropLoaded" style="display:none">
+            <div class="file-ready-wrap">
+              <div class="file-ready-icon">
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                  <path d="M4 17.5l5-5.5 3 3.5 4-5" stroke="var(--gold)" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </div>
+              <div>
+                <p class="file-name-text" id="fileName">—</p>
+                <p class="file-meta-text" id="fileMeta">—</p>
+              </div>
+            </div>
+            <button class="text-link" onclick="event.stopPropagation(); resetFile()">Change file →</button>
+          </div>
+        </div>
+        <input type="file" id="fileInput" style="display:none" onchange="handleFileSelect(event)"/>
+      </div>
+
+      <!-- Hash display -->
+      <div class="card" id="hashCard" style="display:none">
+        <p class="card-eyebrow">SHA-256 Fingerprint</p>
+        <div class="hash-wrap">
+          <code class="hash-text" id="hashValue">—</code>
+          <button class="copy-btn" onclick="copyHash()">
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><rect x="3" y="3" width="7" height="7" rx="0.8" stroke="currentColor" stroke-width="1.1"/><path d="M2 8.5V2h6.5" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/></svg>
+            <span id="copyLabel">Copy</span>
+          </button>
+        </div>
+        <div class="hash-footnote">
+          <span>256-bit output · collision probability 2⁻¹²⁸</span>
+          <span class="shield-note">
+            <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M5 1L2 2.3v2.8c0 2 1.4 3.5 3 4.2 1.6-.7 3-2.2 3-4.2V2.3L5 1z" stroke="currentColor" stroke-width="0.9" fill="none"/></svg>
+            File stays on your device
+          </span>
+        </div>
+      </div>
+
+      <!-- Stamp action -->
+      <div class="card" id="stampCard" style="display:none">
+        <p class="card-eyebrow">Record on Blockchain</p>
+        <div class="field">
+          <label class="field-label">Document label <span class="opt-tag">optional</span></label>
+          <input type="text" class="field-input" id="docName" placeholder="e.g. NDA Agreement v2 · Jan 2025" maxlength="100"/>
+        </div>
+        <div class="gas-info">
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M3 10.5V5L5.5 2l2.5 3v5.5" stroke="var(--gold)" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/><path d="M3 7.5h5" stroke="var(--gold)" stroke-width="0.9" stroke-linecap="round"/></svg>
+          <span>~0.002 MATIC (~$0.001) · Polygon Amoy</span>
+        </div>
+        <button class="primary-btn" id="stampBtn" onclick="stampDocument()">
+          Stamp to Blockchain
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2.5 7h9M8 3.5l3.5 3.5L8 10.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <div class="polygon-badge">
+          <svg width="14" height="14" viewBox="0 0 38 38" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M28.5 11.5L19 6 9.5 11.5v11L19 28l9.5-5.5v-11z" fill="#8247E5" opacity="0.9"/>
+            <path d="M19 6L9.5 11.5v11L19 28l9.5-5.5v-11L19 6z" stroke="#8247E5" stroke-width="1.5" fill="none"/>
+            <path d="M14 16.5l5 3 5-3" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+            <path d="M19 19.5v5" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+          <span>Secured by Polygon</span>
+        </div>
+      </div>
+
+      <!-- Success -->
+      <div class="card success-card" id="resultCard" style="display:none">
+        <div class="success-header">
+          <div class="check-ring">
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+              <path d="M5.5 9l2.5 2.5 5-5" stroke="var(--gold)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <div>
+            <p class="success-title">Document Stamped</p>
+            <p class="success-sub">Permanently recorded on Polygon</p>
+          </div>
+          <div class="polygon-badge inline-badge">
+            <svg width="12" height="12" viewBox="0 0 38 38" fill="none"><path d="M28.5 11.5L19 6 9.5 11.5v11L19 28l9.5-5.5v-11z" fill="#8247E5" opacity="0.9"/></svg>
+            <span>Polygon</span>
+          </div>
+        </div>
+
+        <!-- Proud TX hash display -->
+        <div class="tx-certificate">
+          <p class="tx-cert-label">Transaction Hash</p>
+          <code class="tx-cert-hash" id="txHash">—</code>
+          <button class="tx-copy-btn" onclick="copyTxHash()" id="txCopyBtn">
+            <svg width="11" height="11" viewBox="0 0 12 12" fill="none"><rect x="3" y="3" width="7" height="7" rx="0.8" stroke="currentColor" stroke-width="1.1"/><path d="M2 8.5V2h6.5" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/></svg>
+            <span id="txCopyLabel">Copy</span>
+          </button>
+        </div>
+
+        <div class="record-table">
+          <div class="record-row">
+            <span class="rr-key">Block</span>
+            <span class="rr-val mono-sm" id="blockNum">—</span>
+          </div>
+          <div class="record-row">
+            <span class="rr-key">Stamped at</span>
+            <span class="rr-val" id="stampTime">—</span>
+          </div>
+          <div class="record-row">
+            <span class="rr-key">Network</span>
+            <span class="rr-val">Polygon Amoy</span>
+          </div>
+        </div>
+
+        <div class="action-row">
+          <a class="outline-btn" id="explorerLink" href="#" target="_blank">View on PolygonScan ↗</a>
+          <button class="ghost-btn" onclick="resetStamp()">Stamp another</button>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ── VERIFY TAB ── -->
+    <div class="tab-content" id="tab-verify">
+
+      <div class="page-hero">
+        <p class="hero-eyebrow">Verification</p>
+        <h1 class="hero-title">Check a document's <em>proof.</em></h1>
+        <p class="hero-body">Upload the original file or paste its hash. We query the blockchain and return ownership and timestamp.</p>
+      </div>
+
+      <div class="card">
+        <p class="card-eyebrow">Verify by</p>
+        <div class="seg-control">
+          <button class="seg-btn active" id="vByFileBtn" onclick="switchVerify('file')">File upload</button>
+          <button class="seg-btn" id="vByHashBtn" onclick="switchVerify('hash')">Hash string</button>
+        </div>
+
+        <div id="verifyByFile">
+          <div class="drop-zone compact" id="verifyDrop"
+            ondrop="handleVerifyDrop(event)"
+            ondragover="handleDragOver(event)"
+            ondragleave="handleDragLeave(event)"
+            onclick="document.getElementById('verifyFileInput').click()">
+            <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><rect x="3" y="2" width="11" height="15" rx="1.2" stroke="currentColor" stroke-width="1.1" fill="none"/><path d="M9 2v5h5" stroke="currentColor" stroke-width="1.1"/><path d="M17 14v5M14.5 16.5l2.5-2.5 2.5 2.5" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <p class="drop-primary" style="font-size:14px;margin-top:10px">Drop file to verify</p>
+            <p class="drop-secondary">Hash computed here · checked against blockchain</p>
+          </div>
+          <input type="file" id="verifyFileInput" style="display:none" onchange="handleVerifyFile(event)"/>
+        </div>
+
+        <div id="verifyByHash" style="display:none">
+          <div class="field" style="margin-top:0">
+            <label class="field-label">SHA-256 Hash</label>
+            <input type="text" class="field-input mono-input" id="verifyHashInput"
+              placeholder="64-character hex string..."
+              maxlength="64"
+              oninput="this.value=this.value.toLowerCase().replace(/[^0-9a-f]/g,'')"/>
+          </div>
+          <button class="primary-btn" style="margin-top:12px" onclick="verifyByHashInput()">
+            Check Blockchain
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2.5 7h9M8 3.5l3.5 3.5L8 10.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="card" id="verifyResultCard" style="display:none">
+        <div id="verifyStatus"></div>
+        <div class="record-table" id="verifyResultTable" style="margin-top:16px"></div>
+        <div id="verifyActions" style="margin-top:20px"></div>
+      </div>
+
+    </div>
+
+    <!-- ── HISTORY TAB ── -->
+    <div class="tab-content" id="tab-history">
+
+      <div class="page-hero">
+        <p class="hero-eyebrow">On-Chain Records</p>
+        <h1 class="hero-title">Your document <em>history.</em></h1>
+        <p class="hero-body">Every stamp made by your wallet — pulled live from blockchain events. No database. No server.</p>
+      </div>
+
+      <div class="card wallet-summary-card" id="walletCard">
+        <div class="ws-identity">
+          <div class="ws-avatar" id="wcAvatar">
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><circle cx="9" cy="6.5" r="3.5" stroke="currentColor" stroke-width="1.2"/><path d="M2.5 16c0-3.6 2.9-6.5 6.5-6.5s6.5 2.9 6.5 6.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+          </div>
+          <div>
+            <p class="ws-label">Connected wallet</p>
+            <p class="ws-address" id="wcAddress">Not connected</p>
+          </div>
+        </div>
+        <div class="ws-stats">
+          <div class="ws-stat">
+            <span class="ws-n" id="wcTotal">—</span>
+            <span class="ws-l">Total stamps</span>
+          </div>
+          <div class="ws-sep"></div>
+          <div class="ws-stat">
+            <span class="ws-n" id="wcFirst">—</span>
+            <span class="ws-l">First stamp</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-row-header">
+          <p class="card-eyebrow" style="margin-bottom:0">Stamp records</p>
+          <button class="ghost-btn small" onclick="loadOnChainHistory()">
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M10.5 6A4.5 4.5 0 112 3.8M2 1.5v3h3" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Refresh
+          </button>
+        </div>
+        <p class="chain-source">Queried via <code>eth_getLogs</code> directly from Polygon Amoy</p>
+        <div id="historyList">
+          <div class="empty-state">Connect your wallet to load records</div>
+        </div>
+      </div>
+
+    </div>
+
+    <footer class="footer">
+      <span>Prova · Polygon Amoy</span>
+      <div class="footer-center">
+        <span class="block-ticker-dot"></span>
+        <span class="block-ticker-label">Block</span>
+        <span class="block-ticker-num" id="blockTicker">—</span>
+      </div>
+      <a href="https://amoy.polygonscan.com/address/0x0884935880bc36f8efb5f8813f9568815c1c91e4" target="_blank" class="footer-link">Contract ↗</a>
+    </footer>
+
+  </div>
+
+  <!-- Loading overlay -->
+  <div class="loading-overlay" id="loadingOverlay" style="display:none">
+    <div class="loading-box">
+      <div class="loading-ring"></div>
+      <p class="loading-title" id="loadingText">Processing</p>
+      <p class="loading-hint" id="loadingSub">Please wait</p>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast-wrap" id="toastWrap"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
