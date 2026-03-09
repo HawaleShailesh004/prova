@@ -57,6 +57,11 @@ body {
   margin: 0 auto;
   padding: 0 24px 80px;
 }
+@media (max-width: 768px) {
+  .app {
+    max-width: 100%;
+  }
+}
 
 /* ── HEADER ── */
 .header {

@@ -1,0 +1,31 @@
+<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+
+  <!-- Background -->
+  <rect width="64" height="64" rx="12" fill="#141414"/>
+
+  <!-- Outer ring -->
+  <circle cx="32" cy="32" r="26" stroke="#c9a96e" stroke-width="1" fill="none" opacity="0.35"/>
+
+  <!-- Tick marks -->
+  <g stroke="#c9a96e" stroke-width="0.8" opacity="0.45">
+    <line x1="32" y1="6" x2="32" y2="10"/>
+    <line x1="32" y1="54" x2="32" y2="58"/>
+    <line x1="6" y1="32" x2="10" y2="32"/>
+    <line x1="54" y1="32" x2="58" y2="32"/>
+    <line x1="13.9" y1="13.9" x2="16.7" y2="16.7"/>
+    <line x1="47.3" y1="47.3" x2="50.1" y2="50.1"/>
+    <line x1="50.1" y1="13.9" x2="47.3" y2="16.7"/>
+    <line x1="16.7" y1="47.3" x2="13.9" y2="50.1"/>
+  </g>
+
+  <!-- Document -->
+  <rect x="18" y="14" width="18" height="24" rx="1.5" stroke="#c9a96e" stroke-width="1.3" fill="rgba(201,169,110,0.06)"/>
+  <path d="M28 14 L36 22" stroke="#c9a96e" stroke-width="1.3"/>
+  <path d="M28 14 L28 22 L36 22" stroke="#c9a96e" stroke-width="1.3" fill="#141414"/>
+  <path d="M22 27h10M22 30h10M22 33h6" stroke="#c9a96e" stroke-width="0.9" stroke-linecap="round" opacity="0.5"/>
+
+  <!-- Check badge -->
+  <circle cx="42" cy="42" r="9" fill="#141414" stroke="#c9a96e" stroke-width="1.2"/>
+  <path d="M37.8 42l2.7 2.7 4.7-4.7" stroke="#c9a96e" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+
+</svg>
