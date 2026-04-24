@@ -487,7 +487,40 @@ async function loadOnChainHistory() {
 
   try {
     const filter = contract.filters.DocumentStamped(null, walletAddress);
-    const events = await contract.queryFilter(filter, DEPLOY_BLOCK, 'latest');
+    const readProvider = contract.runner?.provider ?? provider;
+    const latestBlock = await readProvider.getBlockNumber();
+    const CHUNK_SIZE = 100000; // 100k blocks per chunk
+    const MIN_CHUNK_SIZE = 2000;
+    let events = [];
+    let failedRanges = 0;
+
+    for (let from = DEPLOY_BLOCK; from <= latestBlock; from += CHUNK_SIZE) {
+      let rangeStart = from;
+      let rangeEnd = Math.min(from + CHUNK_SIZE - 1, latestBlock);
+      let currentChunkSize = CHUNK_SIZE;
+
+      while (rangeStart <= rangeEnd) {
+        const to = Math.min(rangeStart + currentChunkSize - 1, rangeEnd);
+        try {
+          const chunk = await contract.queryFilter(filter, rangeStart, to);
+          events = events.concat(chunk);
+          rangeStart = to + 1;
+        } catch (e) {
+          if (currentChunkSize <= MIN_CHUNK_SIZE) {
+            failedRanges += 1;
+            console.warn(`Chunk ${rangeStart}-${to} failed, skipping`, e);
+            rangeStart = to + 1;
+            continue;
+          }
+          currentChunkSize = Math.max(Math.floor(currentChunkSize / 2), MIN_CHUNK_SIZE);
+        }
+      }
+    }
+
+    if (events.length === 0 && failedRanges > 0) {
+      document.getElementById('historyList').innerHTML = `<div class="empty-state" style="color:#c47a7a">History query failed on ${failedRanges} ranges. Try again in a few seconds.</div>`;
+      return;
+    }
 
     if (events.length === 0) {
       document.getElementById('wcTotal').textContent = '0';
